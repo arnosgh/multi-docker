@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t arnosgh/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true arnosgh/react-test npm test
+
+after_success:
+  - docker build -t arnosgh/multi-client ./client
+  - docker build -t arnosgh/multi-nginx ./nginx
+  - docker build -t arnosgh/multi-server ./server
+  - docker build -t arnosgh/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push arnosgh/multi-client
+  - docker push arnosgh/multi-nginx
+  - docker push arnosgh/multi-server
+  - docker push arnosgh/multi-worker
